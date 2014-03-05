@@ -80,25 +80,17 @@ if ( $fail == 0 ) then
 
 #invariate headers
 cat >! $eml << EOF
-From: chris wiggins
-bcc: cwbook@mydomain.org
-User-Agent: SNDMSG
-Time: `date` (NYC)
+tell application "Mail"
+    make new outgoing message with properties {visible:true,¬
+        subject:"intro: $f1 $n1 <-> $f2 $n2",¬
+        content:"
 EOF
 
-# recipients
-echo "To:  $f1 $n1 <$e1>, $f2 $n2 <$e2> " >> $eml
-
-#subject
-echo "Subject: intro: "$f1" "$n1" <-> "$f2" "$n2 >> $eml
-
-# NB: done with $n1 $n2
-
 #body
-echo "+@"$f2":++please meet "$f1".+" | tr '+' '\n' >> $eml
+echo "@"$f2":+Please meet "$f1".+" | tr '+' '\n' >> $eml
   
 if ( -e bios/{$l1}.txt ) then
-        grep -v '^[ ]*%' < bios/${l1}.txt | tr '\n' ' ' | sed -e 's/ [ ]*/ /g' -e 's/^[ ]*//' | tr '+' '\n' | fold -s  -b -w $wrap >> $eml 
+        grep -v '^[ ]*%' < bios/${l1}.txt | tr '\n' ' ' | sed -e 's/ [ ]*/ /g' -e 's/^[ ]*//' | tr '+' '\n' | tr '"' '\"' >> $eml 
 	echo "" >> $eml
     else
         echo "missing bio for $l1 --  please execute:";echo "$EDITOR bios/$l1.txt"
@@ -106,9 +98,9 @@ if ( -e bios/{$l1}.txt ) then
         setenv fail 1
 endif
 
-echo "+@"$f1":++please meet "$f2".+" | tr '+' '\n' >> $eml
+echo "@"$f1":+Please meet "$f2".+" | tr '+' '\n' >> $eml
 if ( -e bios/{$l2}.txt ) then
-        grep -v '^[ ]*%' < bios/${l2}.txt | tr '\n' ' ' | sed -e 's/ [ ]*/ /g' -e 's/^[ ]*//' | tr '+' '\n' | fold  -s -b -w $wrap >> $eml 
+        grep -v '^[ ]*%' < bios/${l2}.txt | tr '\n' ' ' | sed -e 's/ [ ]*/ /g' -e 's/^[ ]*//' | tr '+' '\n' | tr '"' '\"'>> $eml 
 	echo "" >> $eml
     else
         echo "missing bio for $l2 -- please execute:";echo "$EDITOR bios/$l2.txt"
@@ -117,8 +109,18 @@ if ( -e bios/{$l2}.txt ) then
 endif
 
 #outtro
-echo "+i hope you can both find time to connect.++best,++chris"| tr '+' '\n' >> $eml
+echo "+I hope you can both find time to connect.++Best,+Chris"| tr '+' '\n' >> $eml
 endif
+
+# recipients
+cat >>! $eml << EOF
+    "}
+    tell result
+        make new to recipient with properties {name:"$f1 $n1", address:"$e1"}
+        make new to recipient with properties {name:"$f2 $n2", address:"$e2"}
+    end tell
+end tell
+EOF
 
 if ( $fail == 0 ) then
   more $eml
